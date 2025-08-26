@@ -1,0 +1,593 @@
+# Create a single-file HTML/JS app for amyloid cardiomyopathy helper
+html = r"""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Amyloid Cardiomyopathy Helper — Single‑File (Prototype)</title>
+  <style>
+    :root{
+      --bg:#0f172a;           /* slate-900 */
+      --panel:#111827;        /* gray-900 */
+      --muted:#94a3b8;        /* slate-400 */
+      --text:#e5e7eb;         /* gray-200 */
+      --accent:#22d3ee;       /* cyan-400 */
+      --accent2:#f59e0b;      /* amber-500 */
+      --ok:#10b981;           /* emerald-500 */
+      --warn:#f59e0b;         /* amber-500 */
+      --danger:#ef4444;       /* red-500 */
+      --border:#1f2937;       /* gray-800 */
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; padding:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial,sans-serif;
+      background:linear-gradient(180deg,#0b1228 0%, #0f172a 100%); color:var(--text);
+    }
+    .container{max-width:1100px;margin:24px auto;padding:0 16px;}
+    header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+    header h1{font-size:clamp(20px,3vw,28px);margin:0;font-weight:700;letter-spacing:.2px}
+    header .badge{font-size:12px;color:#0f172a;background:var(--accent);padding:3px 8px;border-radius:999px;font-weight:700}
+    .disclaimer{
+      background:rgba(239,68,68,.08); border:1px solid rgba(239,68,68,.25);
+      padding:12px 14px; border-radius:10px; margin:8px 0 18px 0; font-size:14px; line-height:1.35;
+    }
+    .grid{display:grid;gap:12px}
+    @media(min-width:980px){ .grid{grid-template-columns:1.1fr 1fr 1fr} }
+    .card{
+      background:linear-gradient(180deg,#0f172a, #0c142b 40%, #0f172a);
+      border:1px solid var(--border); border-radius:14px; padding:14px;
+      box-shadow:0 1px 0 rgba(255,255,255,.03) inset, 0 10px 20px rgba(0,0,0,.25);
+    }
+    .card h2{margin:.2rem 0 8px 0; font-size:16px; font-weight:700; letter-spacing:.3px}
+    label{display:block; font-size:13px; color:var(--muted); margin:8px 0 6px 0}
+    input[type="number"], select{
+      width:100%; padding:10px 10px; background:#0b1228; border:1px solid var(--border); color:var(--text);
+      border-radius:10px; font-size:14px;
+    }
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .check{display:flex;gap:8px;align-items:center;margin:6px 0}
+    .check input{transform:translateY(1px)}
+    details{border:1px dashed var(--border);border-radius:10px;padding:8px 10px;margin:6px 0;background:#0b1228}
+    summary{cursor:pointer;color:var(--muted);font-weight:600}
+    .actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
+    button{
+      background:#111827;border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:10px;
+      cursor:pointer;font-weight:700;letter-spacing:.2px
+    }
+    button.primary{background:linear-gradient(90deg,#06b6d4,#22d3ee); color:#06202a; border-color:transparent}
+    button.secondary{background:#0b1228}
+    .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:10px}
+    .metric{background:#0b1228;border:1px solid var(--border);border-radius:12px;padding:10px}
+    .metric .label{font-size:12px;color:var(--muted)}
+    .metric .value{font-size:22px;font-weight:800;margin-top:2px}
+    .scorebar{height:10px;background:#0b1228;border:1px solid var(--border);border-radius:999px;overflow:hidden;margin-top:8px}
+    .scorefill{height:100%;width:0;background:linear-gradient(90deg,#22d3ee,#f59e0b,#ef4444)}
+    .status{
+      display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:800;letter-spacing:.3px
+    }
+    .ok{background:rgba(16,185,129,.15);color:var(--ok);border:1px solid rgba(16,185,129,.35)}
+    .warn{background:rgba(245,158,11,.15);color:var(--warn);border:1px solid rgba(245,158,11,.35)}
+    .danger{background:rgba(239,68,68,.15);color:var(--danger);border:1px solid rgba(239,68,68,.35)}
+    .list{margin:6px 0 0 0;padding-left:18px}
+    .list li{margin:3px 0}
+    .muted{color:var(--muted)}
+    .footer{margin:18px 0 30px 0;font-size:12px;color:var(--muted)}
+    .small{font-size:12px}
+    .pill{display:inline-block;padding:2px 8px;background:#0b1228;border:1px solid var(--border);border-radius:999px;margin-right:6px;font-size:12px;color:var(--muted)}
+    .examples{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0}
+    a.download{color:var(--accent)}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Amyloid Cardiomyopathy Helper <span class="badge">Prototype</span></h1>
+    </header>
+    <div class="disclaimer">
+      ⚠️ <strong>Educational prototype only.</strong> Not a medical device; do not use for diagnosis or patient management. Algorithms are simplified (assay thresholds vary). For concerning results, refer to amyloidosis specialists and confirm with tissue typing when indicated.
+    </div>
+
+    <div class="examples">
+      <span class="pill">Single-file • Offline • No installs</span>
+      <span class="pill">Click <em>Run Assessment</em> to analyze</span>
+      <button class="secondary" id="prefill-attr">Prefill Example: ATTR-CM</button>
+      <button class="secondary" id="prefill-al">Prefill Example: Suspected AL</button>
+      <button class="secondary" id="reset">Reset</button>
+    </div>
+
+    <section class="grid">
+      <div class="card">
+        <h2>Patient & History</h2>
+        <div class="row">
+          <div>
+            <label>Age (years)</label>
+            <input type="number" id="age" min="18" max="110" value="76">
+          </div>
+          <div>
+            <label>Sex at birth</label>
+            <select id="sex"><option>Male</option><option>Female</option></select>
+          </div>
+        </div>
+        <div class="check"><input type="checkbox" id="african_ancestry"><label for="african_ancestry">African/Caribbean ancestry (↑ V122I pretest for hATTR)</label></div>
+
+        <details>
+          <summary>Systemic “red flags”</summary>
+          <div class="check"><input type="checkbox" id="carpal_tunnel"><label for="carpal_tunnel">Bilateral carpal tunnel (prior)</label></div>
+          <div class="check"><input type="checkbox" id="biceps_rupture"><label for="biceps_rupture">Distal biceps tendon rupture</label></div>
+          <div class="check"><input type="checkbox" id="lumbar_stenosis"><label for="lumbar_stenosis">Lumbar spinal stenosis</label></div>
+          <div class="check"><input type="checkbox" id="neuropathy"><label for="neuropathy">Peripheral/autonomic neuropathy</label></div>
+          <div class="check"><input type="checkbox" id="orthostatic"><label for="orthostatic">Orthostatic hypotension</label></div>
+          <div class="check"><input type="checkbox" id="proteinuria"><label for="proteinuria">Proteinuria (esp. nephrotic-range)</label></div>
+        </details>
+      </div>
+
+      <div class="card">
+        <h2>ECG & Echocardiography</h2>
+        <div class="check"><input type="checkbox" id="low_voltage"><label for="low_voltage">Low limb-lead voltage</label></div>
+        <div class="check"><input type="checkbox" id="pseudo_infarct"><label for="pseudo_infarct">Pseudo-infarct (Q waves)</label></div>
+        <div class="row">
+          <div>
+            <label>IVS thickness (mm)</label>
+            <input type="number" id="ivs_mm" min="5" max="30" value="16">
+          </div>
+          <div>
+            <label>LVEF (%)</label>
+            <input type="number" id="lvef" min="10" max="85" value="50">
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>GLS (absolute %)</label>
+            <input type="number" id="gls" min="0" max="30" step="0.1" value="12">
+          </div>
+          <div>
+            <label>Apical sparing pattern</label>
+            <select id="apical_sparing"><option>No</option><option>Yes</option></select>
+          </div>
+        </div>
+        <div class="check"><input type="checkbox" id="atrial_enlargement"><label for="atrial_enlargement">Biatrial enlargement</label></div>
+      </div>
+
+      <div class="card">
+        <h2>CMR & Bone Scintigraphy</h2>
+        <div class="check"><input type="checkbox" id="mri_diffuse_lge"><label for="mri_diffuse_lge">Diffuse subendocardial/transmural LGE</label></div>
+        <div class="check"><input type="checkbox" id="mri_native_t1_high"><label for="mri_native_t1_high">Native T1 elevated</label></div>
+        <div class="check"><input type="checkbox" id="mri_ecv_high"><label for="mri_ecv_high">ECV elevated</label></div>
+        <div class="row">
+          <div>
+            <label>Perugini / visual grade</label>
+            <select id="perugini"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select>
+          </div>
+          <div>
+            <label>H/CL ratio</label>
+            <input type="number" id="hcl_ratio" min="0" max="3" step="0.01" value="0">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Monoclonal Workup & Genetics</h2>
+        <div class="row">
+          <div>
+            <label>Serum/urine immunofixation positive</label>
+            <select id="ife_positive"><option>No</option><option>Yes</option></select>
+          </div>
+          <div>
+            <label>Serum free light chain ratio (κ/λ)</label>
+            <input type="number" id="flc_ratio" min="0" max="10" step="0.01" value="1.0">
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>dFLC (involved − uninvolved, mg/L)</label>
+            <input type="number" id="dflc" min="0" max="1000" step="0.1" value="0">
+          </div>
+          <div>
+            <label>Pathogenic TTR variant</label>
+            <select id="ttr_mutation"><option>No</option><option>Yes</option></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Cardiac Biomarkers & Renal</h2>
+        <div class="row">
+          <div>
+            <label>NT‑proBNP (pg/mL)</label>
+            <input type="number" id="ntprobnp" min="0" max="100000" step="10" value="3000">
+          </div>
+          <div>
+            <label>hs‑cTnT (ng/L)</label>
+            <input type="number" id="troponin_t" min="0" max="1000" value="50">
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>eGFR (mL/min/1.73m²)</label>
+            <input type="number" id="egfr" min="5" max="150" value="45">
+          </div>
+          <div>
+            <label class="muted">&nbsp;</label>
+            <div class="small muted">Assay thresholds vary by lab. Values here are for teaching only.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="actions">
+      <button class="primary" id="run">Run Assessment</button>
+      <button class="secondary" id="save">Download Report (.txt)</button>
+      <button class="secondary" id="savejson">Download Inputs (.json)</button>
+      <input type="file" id="loadjson" accept=".json" style="display:none"/>
+      <button class="secondary" id="loadbtn">Load Inputs (.json)</button>
+    </div>
+
+    <section class="grid">
+      <div class="card">
+        <h2>Suspicion Score</h2>
+        <div class="metrics">
+          <div class="metric">
+            <div class="label">Score (0–20)</div>
+            <div class="value" id="scoreValue">0</div>
+            <div class="scorebar"><div class="scorefill" id="scoreFill"></div></div>
+          </div>
+          <div class="metric">
+            <div class="label">Interpretation</div>
+            <div class="value small" id="scoreInterp"><span class="status ok">Low</span></div>
+          </div>
+          <div class="metric">
+            <div class="label">Trigger threshold</div>
+            <div class="value small">≥ 6 → consider amyloidosis workup</div>
+          </div>
+        </div>
+        <ul class="list" id="scoreDetails"></ul>
+      </div>
+
+      <div class="card">
+        <h2>Rule‑Based Assessment</h2>
+        <div id="summary" class="small">No assessment yet.</div>
+        <ul class="list" id="rationale"></ul>
+      </div>
+
+      <div class="card">
+        <h2>Educational Staging</h2>
+        <div class="row">
+          <div>
+            <div class="label">AL (Mayo 2012)</div>
+            <div class="value" id="alStage">—</div>
+          </div>
+          <div>
+            <div class="label">ATTR‑CM (Gillmore 2018)</div>
+            <div class="value" id="attrStage">—</div>
+          </div>
+        </div>
+        <div class="small muted" style="margin-top:8px">
+          These staging outputs are simplified heuristics for education only and depend on assay specifics.
+        </div>
+      </div>
+    </section>
+
+    <div class="footer">
+      © 2025 • Single‑file prototype by your AI assistant. No data leaves your browser.
+    </div>
+  </div>
+
+<script>
+function val(id){ const el = document.getElementById(id); if(!el) return null; 
+  if(el.type === 'checkbox'){ return el.checked; }
+  if(el.tagName.toLowerCase()==='select'){ return el.value; }
+  const v = parseFloat(el.value); return Number.isNaN(v) ? 0 : v;
+}
+function setVal(id,v){
+  const el=document.getElementById(id);
+  if(!el) return;
+  if(el.type==='checkbox'){ el.checked=!!v; return; }
+  if(el.tagName.toLowerCase()==='select'){ el.value = (v ? 'Yes':'No'); return; }
+  el.value = v;
+}
+function getInputs(){
+  return {
+    age: val('age'),
+    sex: document.getElementById('sex').value,
+    african_ancestry: document.getElementById('african_ancestry').checked,
+    carpal_tunnel: val('carpal_tunnel'),
+    biceps_rupture: val('biceps_rupture'),
+    lumbar_stenosis: val('lumbar_stenosis'),
+    neuropathy: val('neuropathy'),
+    orthostatic: val('orthostatic'),
+    proteinuria: val('proteinuria'),
+    low_voltage: val('low_voltage'),
+    pseudo_infarct: val('pseudo_infarct'),
+    ivs_mm: val('ivs_mm'),
+    lvef: val('lvef'),
+    gls: val('gls'),
+    apical_sparing: document.getElementById('apical_sparing').value === 'Yes',
+    atrial_enlargement: val('atrial_enlargement'),
+    mri_diffuse_lge: val('mri_diffuse_lge'),
+    mri_native_t1_high: val('mri_native_t1_high'),
+    mri_ecv_high: val('mri_ecv_high'),
+    perugini: parseInt(val('perugini')),
+    hcl_ratio: val('hcl_ratio'),
+    ife_positive: document.getElementById('ife_positive').value === 'Yes',
+    flc_ratio: val('flc_ratio'),
+    dflc: val('dflc'),
+    ttr_mutation: document.getElementById('ttr_mutation').value === 'Yes',
+    ntprobnp: val('ntprobnp'),
+    troponin_t: val('troponin_t'),
+    egfr: val('egfr')
+  };
+}
+
+// Heuristic suspicion score (0–20)
+function suspicionScore(inputs){
+  let score=0; const details=[];
+  const add=(n,txt)=>{ score+=n; details.push(`+${n} ${txt}`); };
+
+  // Red flags
+  if(inputs.carpal_tunnel) add(1,"Bilateral carpal tunnel");
+  if(inputs.biceps_rupture) add(1,"Biceps tendon rupture");
+  if(inputs.lumbar_stenosis) add(1,"Lumbar spinal stenosis");
+  if(inputs.neuropathy) add(1,"Peripheral/autonomic neuropathy");
+  if(inputs.orthostatic) add(1,"Orthostatic hypotension");
+  if(inputs.proteinuria) add(1,"Proteinuria");
+
+  // ECG
+  if(inputs.low_voltage) add(2,"Low limb-lead voltage");
+  if(inputs.pseudo_infarct) add(1,"Pseudo-infarct pattern");
+
+  // Echo
+  if((inputs.ivs_mm||0) >= 12) add(2,"Increased wall thickness (IVS ≥12 mm)");
+  if(inputs.apical_sparing) add(3,"Apical sparing on strain");
+  if(inputs.atrial_enlargement) add(1,"Biatrial enlargement");
+
+  // CMR
+  if(inputs.mri_diffuse_lge) add(2,"Diffuse LGE");
+  if(inputs.mri_native_t1_high || inputs.mri_ecv_high) add(1,"Elevated native T1/ECV");
+
+  // Scintigraphy
+  if(inputs.perugini >= 2) add(4,"Bone scintigraphy grade ≥2");
+  else if(inputs.perugini === 1) add(1,"Bone scintigraphy grade 1");
+
+  // Genetics
+  if(inputs.ttr_mutation) add(2,"Pathogenic TTR variant");
+
+  if(score>20) score=20;
+  return {score, details};
+}
+
+function evaluateCase(inputs){
+  const perugini = inputs.perugini || 0;
+  const monoPos = !!(inputs.ife_positive || inputs.flc_ratio < 0.26 || inputs.flc_ratio > 1.65);
+  const rationale = [];
+  let summary = "";
+
+  if(perugini >= 2 && !monoPos){
+    summary = "Findings compatible with ATTR‑CM noninvasively (grade ≥2 bone scintigraphy and no monoclonal protein). Recommend TTR genotyping and specialist referral.";
+    rationale.push(`Perugini grade ${perugini} with negative monoclonal screen supports ATTR‑CM.`);
+    rationale.push("Noninvasive pathway in common diagnostic algorithms.");
+  } else if(perugini >= 2 && monoPos){
+    summary = "Scintigraphy strongly positive but a monoclonal protein is present. Proceed to tissue biopsy with amyloid typing to distinguish AL vs ATTR. Treat evaluation as urgent for possible AL.";
+    rationale.push(`Perugini grade ${perugini} suggests ATTR, but monoclonal protein can indicate AL; biopsy clarifies typing.`);
+  } else if(perugini <= 1 && monoPos){
+    summary = "Scintigraphy not diagnostic (grade 0–1) and a monoclonal protein is present with suggestive features → AL cardiac amyloidosis possible. Consider endomyocardial or involved‑organ biopsy with mass‑spec typing.";
+    rationale.push(`Perugini grade ${perugini} does not establish ATTR; monoclonal protein raises AL likelihood.`);
+  } else {
+    let flags = 0;
+    if(inputs.apical_sparing) flags++;
+    if(inputs.mri_diffuse_lge) flags++;
+    if((inputs.ivs_mm||0) >= 12) flags++;
+    if(inputs.low_voltage) flags++;
+    if(flags >= 2){
+      summary = "Monoclonal screen negative and scintigraphy not diagnostic, but multiple imaging red flags present. Consider expert review and CMR/biopsy depending on pre‑test probability.";
+    } else {
+      summary = "Current data does not establish cardiac amyloidosis. If clinical suspicion remains, consider alternative diagnoses or targeted repeat testing.";
+    }
+    rationale.push("Branch: negative monoclonal screen with grade 0–1 scintigraphy.");
+  }
+
+  if(inputs.apical_sparing) rationale.push("Apical sparing on strain supports amyloid over other LVH causes.");
+  if(inputs.low_voltage && (inputs.ivs_mm||0) >= 12) rationale.push("Voltage–mass discordance raises suspicion.");
+  if(inputs.mri_diffuse_lge) rationale.push("Diffuse subendocardial/transmural LGE is supportive.");
+  if(inputs.ttr_mutation) rationale.push("Pathogenic TTR variant supports hereditary ATTR with compatible phenotype.");
+  if(inputs.african_ancestry) rationale.push("African/Caribbean ancestry increases pre‑test probability of TTR V122I (Val142I) hATTR.");
+
+  return {summary, rationale};
+}
+
+// Educational staging
+function stageALMayo2012(ntprobnp, troponin_t, dflc){
+  let flags=0;
+  if((ntprobnp||0) >= 1800) flags++;
+  if((troponin_t||0) >= 40) flags++;      // hs‑cTnT stand‑in; assay dependent
+  if((dflc||0) >= 180) flags++;           // mg/L heuristic
+  return `Stage ${flags} (heuristic)`;
+}
+function stageATTRGillmore2018(ntprobnp, egfr){
+  if((ntprobnp||0) <= 3000 && (egfr||0) >= 45) return "Stage I (heuristic)";
+  if((ntprobnp||0) > 3000 && (egfr||0) < 45) return "Stage III (heuristic)";
+  return "Stage II (heuristic)";
+}
+
+function interpretScore(score){
+  if(score >= 12) return {label:"High", cls:"danger"};
+  if(score >= 6) return {label:"Intermediate", cls:"warn"};
+  return {label:"Low", cls:"ok"};
+}
+
+function runAssessment(){
+  const inputs = getInputs();
+  // score
+  const {score, details} = suspicionScore(inputs);
+  document.getElementById('scoreValue').textContent = score.toString();
+  const pct = Math.min(100, Math.round((score/20)*100));
+  document.getElementById('scoreFill').style.width = pct + "%";
+  const inter = interpretScore(score);
+  document.getElementById('scoreInterp').innerHTML = `<span class="status ${inter.cls}">${inter.label}</span>`;
+  const list = document.getElementById('scoreDetails');
+  list.innerHTML = "";
+  details.forEach(d=>{
+    const li=document.createElement('li'); li.textContent=d; list.appendChild(li);
+  });
+
+  // rule-based
+  const res = evaluateCase(inputs);
+  document.getElementById('summary').textContent = res.summary;
+  const r = document.getElementById('rationale');
+  r.innerHTML="";
+  res.rationale.forEach(x=>{ const li=document.createElement('li'); li.textContent=x; r.appendChild(li); });
+
+  // staging
+  document.getElementById('alStage').textContent = stageALMayo2012(inputs.ntprobnp, inputs.troponin_t, inputs.dflc);
+  document.getElementById('attrStage').textContent = stageATTRGillmore2018(inputs.ntprobnp, inputs.egfr);
+
+  // save last to localStorage
+  localStorage.setItem("amyloid_inputs", JSON.stringify(inputs));
+}
+
+function resetAll(){
+  document.querySelectorAll('input[type="number"]').forEach(el=>{ if(el.id==='ivs_mm') el.value=16; else if(el.id==='lvef') el.value=50; else if(el.id==='gls') el.value=12; else if(el.id==='hcl_ratio') el.value=0; else if(el.id==='flc_ratio') el.value=1.0; else if(el.id==='dflc') el.value=0; else if(el.id==='ntprobnp') el.value=3000; else if(el.id==='troponin_t') el.value=50; else if(el.id==='egfr') el.value=45; else if(el.id==='age') el.value=76; else el.value=0; });
+  document.querySelectorAll('input[type="checkbox"]').forEach(el=> el.checked=false);
+  document.getElementById('sex').value='Male';
+  document.getElementById('apical_sparing').value='No';
+  document.getElementById('ife_positive').value='No';
+  document.getElementById('ttr_mutation').value='No';
+  document.getElementById('perugini').value='0';
+  runAssessment();
+}
+
+function prefillATTR(){
+  resetAll();
+  setVal('age',80);
+  document.getElementById('sex').value='Male';
+  document.getElementById('african_ancestry').checked=false;
+  document.getElementById('carpal_tunnel').checked=true;
+  document.getElementById('lumbar_stenosis').checked=true;
+  document.getElementById('low_voltage').checked=true;
+  setVal('ivs_mm',16);
+  setVal('gls',11.5);
+  document.getElementById('apical_sparing').value='Yes';
+  document.getElementById('atrial_enlargement').checked=true;
+  document.getElementById('mri_diffuse_lge').checked=true;
+  document.getElementById('perugini').value='3';
+  document.getElementById('ife_positive').value='No';
+  document.getElementById('ttr_mutation').value='No';
+  setVal('ntprobnp',3200);
+  setVal('troponin_t',55);
+  setVal('egfr',50);
+  runAssessment();
+}
+function prefillAL(){
+  resetAll();
+  setVal('age',68);
+  document.getElementById('sex').value='Male';
+  document.getElementById('carpal_tunnel').checked=true;
+  document.getElementById('neuropathy').checked=true;
+  document.getElementById('low_voltage').checked=true;
+  setVal('ivs_mm',14);
+  document.getElementById('apical_sparing').value='Yes';
+  document.getElementById('mri_diffuse_lge').checked=true;
+  document.getElementById('perugini').value='1';
+  document.getElementById('ife_positive').value='Yes';
+  setVal('flc_ratio',2.2);
+  setVal('dflc',230);
+  setVal('ntprobnp',5200);
+  setVal('troponin_t',70);
+  setVal('egfr',38);
+  runAssessment();
+}
+
+function textReport(inputs, score, details, res, alStage, attrStage){
+  const lines = [];
+  lines.push("Amyloid Cardiomyopathy Helper — Educational Prototype");
+  lines.push("====================================================");
+  lines.push("");
+  lines.push("Summary:");
+  lines.push("  " + res.summary);
+  lines.push("");
+  lines.push("Suspicion score: " + score + " / 20");
+  details.forEach(d=>lines.push("  - " + d));
+  lines.push("");
+  lines.push("Rationale:");
+  res.rationale.forEach(x=>lines.push("  - " + x));
+  lines.push("");
+  lines.push("Staging (heuristic):");
+  lines.push("  - AL (Mayo 2012): " + alStage);
+  lines.push("  - ATTR‑CM (Gillmore 2018): " + attrStage);
+  lines.push("");
+  lines.push("Inputs:");
+  Object.entries(inputs).forEach(([k,v])=>lines.push(`  - ${k}: ${v}`));
+  lines.push("");
+  lines.push("Disclaimer: This report is educational only, not for clinical use. Assay thresholds vary; confirm with specialists.");
+  return lines.join("\n");
+}
+
+function download(filename, content, mime){
+  const blob = new Blob([content], {type: mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.style.display="none";
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 500);
+}
+
+document.getElementById('run').addEventListener('click', runAssessment);
+document.getElementById('reset').addEventListener('click', resetAll);
+document.getElementById('prefill-attr').addEventListener('click', prefillATTR);
+document.getElementById('prefill-al').addEventListener('click', prefillAL);
+document.getElementById('save').addEventListener('click', ()=>{
+  const inputs = getInputs();
+  const sc = suspicionScore(inputs);
+  const res = evaluateCase(inputs);
+  const al = stageALMayo2012(inputs.ntprobnp, inputs.troponin_t, inputs.dflc);
+  const attr = stageATTRGillmore2018(inputs.ntprobnp, inputs.egfr);
+  const txt = textReport(inputs, sc.score, sc.details, res, al, attr);
+  download("amyloid_helper_report.txt", txt, "text/plain");
+});
+document.getElementById('savejson').addEventListener('click', ()=>{
+  const inputs = getInputs();
+  download("amyloid_helper_inputs.json", JSON.stringify(inputs, null, 2), "application/json");
+});
+document.getElementById('loadbtn').addEventListener('click', ()=> document.getElementById('loadjson').click());
+document.getElementById('loadjson').addEventListener('change', (e)=>{
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const data = JSON.parse(reader.result);
+      // set values where keys match
+      Object.entries(data).forEach(([k,v])=>{
+        if(document.getElementById(k) !== null){
+          if(typeof v === 'boolean'){ document.getElementById(k).checked = v; }
+          else if(document.getElementById(k).tagName.toLowerCase()==='select'){ document.getElementById(k).value = (v===true?'Yes': v===false?'No': String(v)); }
+          else { document.getElementById(k).value = v; }
+        }
+      });
+      runAssessment();
+    }catch(err){ alert("Could not load JSON: " + err.message); }
+  };
+  reader.readAsText(file);
+});
+
+// Load last session if available
+try{
+  const saved = localStorage.getItem("amyloid_inputs");
+  if(saved){
+    const data = JSON.parse(saved);
+    Object.entries(data).forEach(([k,v])=>{
+      if(document.getElementById(k) !== null){
+        if(typeof v === 'boolean'){ document.getElementById(k).checked = v; }
+        else if(document.getElementById(k).tagName && document.getElementById(k).tagName.toLowerCase()==='select'){
+          document.getElementById(k).value = (v===true?'Yes': v===false?'No': String(v));
+        } else { document.getElementById(k).value = v; }
+      }
+    });
+  }
+}catch{}
+runAssessment();
+</script>
+</body>
+</html>"""
+path = "/mnt/data/amyloid_cardiomyopathy_helper.html"
+with open(path, "w", encoding="utf-8") as f:
+    f.write(html)
+path
